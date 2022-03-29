@@ -1,4 +1,5 @@
 from components import *
+from scene_manager import *
 from typing import TypeVar, Generic
 
 T = TypeVar('T')
@@ -9,6 +10,7 @@ class GameObject (Generic[T]):
 		self.name = name
 		self.tag = tag
 		self.layer = layer
+		self.scene = SceneManager.active_scene
 
 		self.components: list[Component] = []
 		self.add_component(Transform(use_meta=True))

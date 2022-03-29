@@ -1,11 +1,11 @@
 from components import *
-from gameobject import GameObject
 
 class Scene ():
-	def __init__ (self): pass
+	def __init__ (self, name: str):
+		self.name = name
 
 	def print_global_tree (self):
-		print("+ GLOBAL TRANSFORM TREE +")
+		print(f"+ GLOBAL TRANSFORM TREE (Scene: {self.name}) +")
 		for transform in list(Transform.instances.values()):
-			if not transform.parent: transform.print_local_tree(0)
+			if not transform.parent and transform.game_object.scene == self: transform.print_local_tree(0)
 		print("+ --------------------- +")
