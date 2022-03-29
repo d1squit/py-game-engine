@@ -25,11 +25,8 @@ class Transform (Component):
 		self.__local_rotation: float = 0
 		self.__local_scale: Vector2 = Vector2()
 
-		self.__childs: list[Transform] = []
 		self.parent: Transform = None
-		self.root: Transform = None
-
-		self.component_update()
+		self.root: Transform = self
 
 
 # OPERATORS
@@ -48,12 +45,6 @@ class Transform (Component):
 
 
 # PUBLIC METHODS
-	def childs_update (self, delta):
-		for tr in Transform.instances.values():
-			if tr in self.__childs:
-				tr.gameObject.transform += delta
-				tr.childs_update(Transform())
-
 	def transforms_update (self):
 		if (self.parent):
 			self.__position = self.__local_position + self.parent.position
@@ -66,43 +57,50 @@ class Transform (Component):
 			self.__local_rotation = self.__rotation - self.parent.rotation
 			self.__local_scale = self.__scale - self.parent.scale
 
-	def component_update (self):
-		if not self.parent: self.root = self
-		for child in self.__childs: child.parent = self
+	def get_childs_indexes (self):
+		indexes: list[int] = []
+		for idx, tr in enumerate(list(Transform.instances.values())):
+			if tr.parent == self: indexes.append(idx)
+		return indexes
 
-		if self.root:
-			for child in self.__childs: child.root = self.root
+	def get_childs_index (self, index: int):
+		return self.get_childs_indexes()[index]
 
-		self.local_transforms_update()
-		self.transforms_update()
+	def find_child_index (self, name):
+		for child in self.get_childs_indexes():
+			if list(Transform.instances.values())[child].gameObject.name == name: return child
+
+	def childs_update (self, delta):
+		for child in self.get_childs_indexes():
+			if child in self.get_childs_indexes():
+				list(Transform.instances.values())[child].gameObject.transform += delta
+				list(Transform.instances.values())[child].childs_update(Transform())
 
 	def attach_to (self, parent):
-		parent.__childs.append(self)
+		self.root = parent.root
 		self.parent = parent
 		self.local_transforms_update()
 
-	# def detach (self):
-	# 	self.parent.__childs.remove(self)
-	# 	self.parent = None
-	# 	self.local_transforms_update()
+	def detach (self):
+		self.parent = None
+		self.local_transforms_update()
 
 	def print_local_tree (self, iter):
 		string = ""
 		for i in range(iter): string += "--"
 		print(string + "> " + self.gameObject.name)
 		iter += 1
-		for child in self.__childs: child.print_local_tree(iter)
+		for child in self.get_childs_indexes(): list(Transform.instances.values())[child].print_local_tree(iter)
 # --------------
 
 
 # PROPERTIES
 	@property
-	def childs (self):
-		result = Transform.get_instances()
-		for tr in result:
-			if not tr in self.__childs:
-				result.remove(tr)
-		return result
+	def child_count (self) -> int:
+		counter = 0
+		for tr in list(Transform.instances.values()):
+			if tr.parent == self: counter += 1
+		return counter
 
 
 	@property
@@ -112,8 +110,6 @@ class Transform (Component):
 	def position (self, pos: Vector2):
 		self.childs_update(Transform(position=pos - self.__position))
 		self.__position = pos
-		self.local_transforms_update()
-		self.component_update()
 	
 	@property
 	def rotation (self) -> float:
@@ -122,8 +118,6 @@ class Transform (Component):
 	def rotation (self, rot: float):
 		self.childs_update(Transform(rotation=rot - self.__rotation))
 		self.__rotation = rot
-		self.local_transforms_update()
-		self.component_update()
 	
 	@property
 	def scale (self) -> Vector2:
@@ -132,8 +126,6 @@ class Transform (Component):
 	def scale (self, scale: Vector2):
 		self.childs_update(Transform(scale=scale - self.__scale))
 		self.__scale = scale
-		self.local_transforms_update()
-		self.component_update()
 
 	
 	@property
@@ -141,30 +133,21 @@ class Transform (Component):
 		return self.__local_position
 	@local_position.setter
 	def local_position (self, local_pos: Vector2):
-		self.childs_update(Transform(position=local_pos - self.__local_position))
 		self.__local_position = local_pos
-		self.transforms_update()
-		self.component_update()
 	
 	@property
 	def local_rotation (self) -> float:
 		return self.__local_rotation
 	@local_rotation.setter
 	def local_rotation (self, local_rot: float):
-		self.childs_update(Transform(rotation=local_rot - self.__local_rotation))
 		self.__local_rotation = local_rot
-		self.transforms_update()
-		self.component_update()
 	
 	@property
 	def local_scale (self) -> Vector2:
 		return self.__local_scale
 	@local_scale.setter
 	def local_scale (self, local_scale: Vector2):
-		self.childs_update(Transform(scale=local_scale - self.__local_scale))
 		self.__local_scale = local_scale
-		self.transforms_update()
-		self.component_update()
 # ----------
 
 

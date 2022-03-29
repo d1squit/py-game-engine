@@ -20,7 +20,6 @@ class GameObject (Generic[T]):
 		return self.get_component(Transform)
 	@transform.setter
 	def transform (self, tr: Transform):
-		self.__transform = tr
 		self.get_component(Transform).position = tr.position
 		self.get_component(Transform).rotation = tr.rotation
 		self.get_component(Transform).scale = tr.scale
