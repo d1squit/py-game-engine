@@ -1,10 +1,11 @@
+from turtle import forward
 from vector2 import *
 
 
 class Component ():
 	def __init__ (self, once=True):
-		self.gameObject = None
-		self.once = once
+		self.__game_object = None
+		self.once: bool = once	
 	
 	def component_update (): print("Empty Component")
 
@@ -28,6 +29,9 @@ class Transform (Component):
 		self.parent: Transform = None
 		self.root: Transform = self
 
+		self.name = ""
+		self.tag = ""
+
 
 # OPERATORS
 	def __repr__ (self):
@@ -45,17 +49,14 @@ class Transform (Component):
 
 
 # PUBLIC METHODS
-	def transforms_update (self):
-		if (self.parent):
-			self.__position = self.__local_position + self.parent.position
-			self.__rotation = self.__local_rotation + self.parent.rotation
-			self.__scale = self.__local_scale + self.parent.scale
-
 	def local_transforms_update (self):
 		if (self.parent):
 			self.__local_position = self.__position - self.parent.position
 			self.__local_rotation = self.__rotation - self.parent.rotation
 			self.__local_scale = self.__scale - self.parent.scale
+
+
+	# --child indexes system
 
 	def get_childs_indexes (self):
 		indexes: list[int] = []
@@ -68,12 +69,12 @@ class Transform (Component):
 
 	def find_child_index (self, name):
 		for child in self.get_childs_indexes():
-			if list(Transform.instances.values())[child].gameObject.name == name: return child
+			if list(Transform.instances.values())[child].game_object.name == name: return child
 
 	def childs_update (self, delta):
 		for child in self.get_childs_indexes():
 			if child in self.get_childs_indexes():
-				list(Transform.instances.values())[child].gameObject.transform += delta
+				list(Transform.instances.values())[child].game_object.transform += delta
 				list(Transform.instances.values())[child].childs_update(Transform())
 
 	def attach_to (self, parent):
@@ -88,13 +89,51 @@ class Transform (Component):
 	def print_local_tree (self, iter):
 		string = ""
 		for i in range(iter): string += "--"
-		print(string + "> " + self.gameObject.name)
+		print("| " + string + "> " + self.game_object.name)
 		iter += 1
 		for child in self.get_childs_indexes(): list(Transform.instances.values())[child].print_local_tree(iter)
+
+	# --
+
+	def look_at (self, target) -> float:
+		angle = math.degrees(math.atan2(target.position.y - self.position.y, target.position.x - self.position.x))
+		self.rotation += angle
+		return angle
+
+	def rotate_around (self, axis: Vector2, angle: float) -> Vector2:
+		vector = Vector2.angle_vector(self.position - axis, angle)
+		self.position = vector + axis
+		return vector + axis
 # --------------
 
 
 # PROPERTIES
+	@property
+	def game_object (self):
+		return self.__game_object
+	@game_object.setter
+	def game_object (self, object):
+		self.name = object.name
+		self.tag = object.tag
+		self.__game_object = object
+
+
+	@property
+	def down (self):
+		return Vector2.angle_vector(Vector2.down(), self.rotation)
+	
+	@property
+	def left (self):
+		return Vector2.angle_vector(Vector2.left(), self.rotation)
+	
+	@property
+	def right (self):
+		return Vector2.angle_vector(Vector2.right(), self.rotation)
+
+	@property
+	def up (self):
+		return Vector2.angle_vector(Vector2.up(), self.rotation)
+
 	@property
 	def child_count (self) -> int:
 		counter = 0

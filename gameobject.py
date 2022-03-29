@@ -14,6 +14,15 @@ class GameObject (Generic[T]):
 		self.add_component(Transform(use_meta=True))
 
 
+# OPERATORS
+	def __repr__ (self):
+		return f"GameObject (Name: {self.name}, {self.transform})"
+
+	def __str__ (self):
+		return f"GameObject (Name: {self.name}, {self.transform})"
+# ---------
+
+
 # PROPERTIES
 	@property
 	def transform (self) -> Transform:
@@ -32,8 +41,8 @@ class GameObject (Generic[T]):
 			if (not self.get_component(type(component)) and component.once) or not component.once:
 				component.use_meta = True
 				self.components.append(component)
-				self.components[-1].gameObject = self
-				component.gameObject = self
+				self.components[-1].game_object = self
+				component.game_object = self
 				return component
 		print(str(type(component)) + " already attached to " + self.name)
 

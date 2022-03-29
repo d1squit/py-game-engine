@@ -5,5 +5,7 @@ class Scene ():
 	def __init__ (self): pass
 
 	def print_global_tree (self):
+		print("+ GLOBAL TRANSFORM TREE +")
 		for transform in list(Transform.instances.values()):
 			if not transform.parent: transform.print_local_tree(0)
+		print("+ --------------------- +")
