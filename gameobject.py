@@ -1,16 +1,20 @@
 from components import *
+from scene import *
 from typing import TypeVar, Generic
 
 T = TypeVar('T')
 
 
 class GameObject (Generic[T]):
-	def __init__ (self, name: str, tag="", layer=[]):
+	def __init__ (self, name: str, tag="", layer=[], scene=None):
 		self.name = name
 		self.tag = tag
 		self.layer = layer
+		
+		if not scene: self.scene = Scene.active_scene
+		else: self.scene = scene
 
-		GameObject.unsorted_instances[id(self)] = self
+		GameObject.instances[id(self)] = self
 
 		self.components: list[Component] = []
 		self.add_component(Transform(use_meta=True))
@@ -24,8 +28,8 @@ class GameObject (Generic[T]):
 		return f"GameObject (Name: {self.name}, {self.transform})"
 
 	def __del__ (self):
-		try: GameObject.sorted_instances.pop(id(self))
-		except KeyError: GameObject.unsorted_instances.pop(id(self))
+		try: GameObject.instances.pop(id(self))
+		except KeyError: GameObject.uninstances.pop(id(self))
 # ---------
 
 
@@ -41,8 +45,7 @@ class GameObject (Generic[T]):
 # ----------
 
 # STATIC PROPERTIES
-	sorted_instances = {}
-	unsorted_instances = {}
+	instances = {}
 # -----------------
 
 

@@ -122,9 +122,11 @@ class Transform (Component):
 				list(Transform.instances.values())[child].childs_update(Transform())
 
 	def attach_to (self, parent):
-		self.root = parent.root
-		self.parent = parent
-		self.local_transforms_update()
+		if self.game_object.scene == parent.game_object.scene:
+			self.root = parent.root
+			self.parent = parent
+			self.local_transforms_update()
+		else: raise Exception('The specified object to attach does not exist in this scene')
 
 	def detach (self):
 		self.parent = None

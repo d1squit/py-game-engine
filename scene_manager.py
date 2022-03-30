@@ -1,7 +1,7 @@
 import sys
-from scene import *
-from gameobject import GameObject
+from gameobject import *
 import pygame
+
 
 class SceneManager ():
 
@@ -22,32 +22,25 @@ class SceneManager ():
 					pygame.quit()
 					sys.exit()
 
+			SceneManager.window.fill(SceneManager.screen_color)
 			SceneManager.main_cycle()
 
 			pygame.display.update()
 			SceneManager.fps_clock.tick(SceneManager.fps)
 
-	@staticmethod
-	def sort_gameobjects ():
-		for game_object in list(GameObject.unsorted_instances.values()):
-			game_object.scene = SceneManager.active_scene # --------------------- exception check !
-			GameObject.sorted_instances[list(GameObject.unsorted_instances.keys())[0]] = game_object
-			del GameObject.unsorted_instances[list(GameObject.unsorted_instances.keys())[0]]
-
 	
 	@staticmethod
 	def main_cycle ():
-		if not len(GameObject.unsorted_instances): SceneManager.sort_gameobjects()
-
-		for game_object in list(GameObject.unsorted_instances.values()):
-			for component in game_object.components: component.update({'SceneManager': SceneManager})
+		for game_object in list(GameObject.instances.values()):
+			if game_object.scene == Scene.active_scene:
+				for component in game_object.components: component.update({'SceneManager': SceneManager})
 
 
 	@staticmethod
 	def create_scene (scene_name: str, active=True):
-		SceneManager.scenes[scene_name] = Scene(scene_name)
-		if active: SceneManager.active_scene = SceneManager.scenes[scene_name]
-		return SceneManager.scenes[scene_name]
+		Scene.scenes[scene_name] = Scene(scene_name)
+		if active: Scene.active_scene = Scene.scenes[scene_name]
+		return Scene.scenes[scene_name]
 # --------------
 
 
@@ -58,12 +51,8 @@ class SceneManager ():
 	fps = 60
 	screen_width = 1120
 	screen_height = 630
+	screen_color = (255, 255, 255)
 	fullscreen = False
 
-	pixels_per_unit = 64
-
 	caption = "PyGameEngineProject"
-
-	scenes = {}
-	active_scene = None
 # -----------------
