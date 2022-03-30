@@ -1,13 +1,55 @@
-from math import gamma
-from vector2 import *
+from sprite import *
 
 
 class Component ():
 	def __init__ (self, once=True):
-		self.__game_object = None
 		self.once: bool = once	
 	
-	def component_update (): print("Empty Component")
+	def update (self, args): pass
+
+
+class SpriteRenderer (Component):
+	def __init__ (self, sprite: Sprite, once=True, use_meta=False):
+		super().__init__(once)
+		self.once = once
+		self.use_meta = use_meta
+
+		if self.use_meta: SpriteRenderer.instances[id(self)] = self
+
+		self.sprite = sprite
+
+
+# OPERATORS
+	def __repr__ (self):
+		return f"Sprite (Sprite: {self.sprite})"
+
+	def __str__ (self):
+		return f"Sprite (Sprite: {self.sprite})"
+
+	def __del__ (self):
+		if self.use_meta: SpriteRenderer.instances.pop(id(self))
+# ---------
+
+
+	def update (self, args):
+		args['SceneManager'].window.blit(self.sprite.texture, (self.game_object.transform.position.x, self.game_object.transform.position.y))
+
+
+# PROPERTIES
+	@property
+	def game_object (self):
+		return self.__game_object
+	@game_object.setter
+	def game_object (self, object):
+		self.name = object.name
+		self.tag = object.tag
+		self.__game_object = object
+# ----------
+
+
+# STATIC PROPERTIES
+	instances = {}
+# -----------------
 
 
 class Transform (Component):
@@ -35,16 +77,16 @@ class Transform (Component):
 
 # OPERATORS
 	def __repr__ (self):
-		return f"Transform (Position: {self.__position}, Rotation: {self.__rotation}, Scale: {self.__scale})"
+		return f"Transform (Position: {self.position}, Rotation: {self.rotation}, Scale: {self.scale})"
 
 	def __str__ (self):
-		return f"Transform (Position: {self.__position}, Rotation: {self.__rotation}, Scale: {self.__scale})"
+		return f"Transform (Position: {self.position}, Rotation: {self.rotation}, Scale: {self.scale})"
 
 	def __del__ (self):
 		if self.use_meta: Transform.instances.pop(id(self))
 	
 	def __add__ (self, other):
-		return Transform(self.__position + other.__position, self.__rotation + other.__rotation, self.__scale + other.__scale)
+		return Transform(self.position + other.position, self.rotation + other.rotation, self.scale + other.scale)
 # ---------
 
 
@@ -54,6 +96,8 @@ class Transform (Component):
 			self.__local_position = self.__position - self.parent.position
 			self.__local_rotation = self.__rotation - self.parent.rotation
 			self.__local_scale = self.__scale - self.parent.scale
+
+	# def update (self): pass
 
 
 	# --child indexes system
@@ -67,7 +111,7 @@ class Transform (Component):
 	def get_childs_index (self, index: int):
 		return self.get_childs_indexes()[index]
 
-	def find_child_index (self, name):
+	def find_child_index (self, name: str):
 		for child in self.get_childs_indexes():
 			if list(Transform.instances.values())[child].game_object.name == name: return child
 
@@ -78,10 +122,9 @@ class Transform (Component):
 				list(Transform.instances.values())[child].childs_update(Transform())
 
 	def attach_to (self, parent):
-		if self.game_object.scene == parent.game_object.scene:
-			self.root = parent.root
-			self.parent = parent
-			self.local_transforms_update()
+		self.root = parent.root
+		self.parent = parent
+		self.local_transforms_update()
 
 	def detach (self):
 		self.parent = None
