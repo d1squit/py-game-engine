@@ -17,7 +17,7 @@ class GameObject (Generic[T]):
 		GameObject.instances[id(self)] = self
 
 		self.components: list[Component] = []
-		self.add_component(Transform(use_meta=True))
+		self.add_component(Transform())
 
 
 # OPERATORS
@@ -28,8 +28,7 @@ class GameObject (Generic[T]):
 		return f"GameObject (Name: {self.name}, {self.transform})"
 
 	def __del__ (self):
-		try: GameObject.instances.pop(id(self))
-		except KeyError: GameObject.uninstances.pop(id(self))
+		GameObject.instances.pop(id(self))
 # ---------
 
 
@@ -55,6 +54,7 @@ class GameObject (Generic[T]):
 			if (not self.get_component(type(component)) and component.once) or not component.once:
 				self.components.append(component)
 				self.components[-1].game_object = self
+				self.components[-1].cache()
 				component.game_object = self
 				return component
 		print(str(type(component)) + " already attached to " + self.name)

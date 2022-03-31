@@ -3,36 +3,27 @@ from sprite import *
 
 class Component ():
 	def __init__ (self, once=True):
-		self.once: bool = once	
-	
-	def update (self, args): pass
+		self.once: bool = once
+		self.cached = False
 
-
-class SpriteRenderer (Component):
-	def __init__ (self, sprite: Sprite, once=True, use_meta=False):
-		super().__init__(once)
-		self.once = once
-		self.use_meta = use_meta
-
-		if self.use_meta: SpriteRenderer.instances[id(self)] = self
-
-		self.sprite = sprite
+		try: type(self).instances
+		except AttributeError: type(self).instances = {}
 
 
 # OPERATORS
-	def __repr__ (self):
-		return f"Sprite (Sprite: {self.sprite})"
-
-	def __str__ (self):
-		return f"Sprite (Sprite: {self.sprite})"
-
 	def __del__ (self):
-		if self.use_meta: SpriteRenderer.instances.pop(id(self))
+		if self.cached: type(self).instances.pop(id(self))
+	
+	def cache (self):
+		if not self.cached:
+			type(self).instances[id(self)] = self
+			self.cached = True
 # ---------
 
 
-	def update (self, args):
-		args['SceneManager'].window.blit(self.sprite.texture, (self.game_object.transform.position.x, self.game_object.transform.position.y))
+# METHODS FOR OVERRIDING
+	def update (self, args): pass
+# ----------------------
 
 
 # PROPERTIES
@@ -47,18 +38,35 @@ class SpriteRenderer (Component):
 # ----------
 
 
+class SpriteRenderer (Component):
+	def __init__ (self, sprite: Sprite, once=True):
+		super().__init__(once)
+		self.sprite = sprite
+
+
+# OPERATORS
+	def __repr__ (self):
+		return f"Sprite (Sprite: {self.sprite})"
+
+	def __str__ (self):
+		return f"Sprite (Sprite: {self.sprite})"
+# ---------
+
+
+# OVERRIDED METHODS
+	def update (self, args):
+		args['SceneManager'].window.blit(self.sprite.texture, (self.game_object.transform.position.x, self.game_object.transform.position.y))
+# -----------------
+
+
 # STATIC PROPERTIES
 	instances = {}
 # -----------------
 
 
 class Transform (Component):
-	def __init__ (self, position=Vector2(), rotation=0, scale=Vector2(), once=True, use_meta=False):
+	def __init__ (self, position=Vector2(), rotation=0, scale=Vector2(), once=True):
 		super().__init__(once)
-		self.once = once
-		self.use_meta = use_meta
-
-		if self.use_meta: Transform.instances[id(self)] = self
 
 		self.__position: Vector2 = position
 		self.__rotation: float = rotation
@@ -81,9 +89,6 @@ class Transform (Component):
 
 	def __str__ (self):
 		return f"Transform (Position: {self.position}, Rotation: {self.rotation}, Scale: {self.scale})"
-
-	def __del__ (self):
-		if self.use_meta: Transform.instances.pop(id(self))
 	
 	def __add__ (self, other):
 		return Transform(self.position + other.position, self.rotation + other.rotation, self.scale + other.scale)
@@ -96,8 +101,6 @@ class Transform (Component):
 			self.__local_position = self.__position - self.parent.position
 			self.__local_rotation = self.__rotation - self.parent.rotation
 			self.__local_scale = self.__scale - self.parent.scale
-
-	# def update (self): pass
 
 
 	# --child indexes system
@@ -154,16 +157,6 @@ class Transform (Component):
 
 
 # PROPERTIES
-	@property
-	def game_object (self):
-		return self.__game_object
-	@game_object.setter
-	def game_object (self, object):
-		self.name = object.name
-		self.tag = object.tag
-		self.__game_object = object
-
-
 	@property
 	def down (self):
 		return Vector2.angle_vector(Vector2.down(), self.rotation)
