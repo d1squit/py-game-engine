@@ -30,6 +30,13 @@ class Vector2 ():
 	def __truediv__ (self, other):
 		if (type(other) == Vector2): return Vector2(self.x / other.x, self.y / other.y)
 		elif (type(other) == int or type(other) == float): return Vector2(self.x / other, self.y / other)
+
+	def __iter__ (self):
+		for i in [self.x, self.y]:
+			yield i
+
+	def __neg__ (self):
+		return Vector2(-self.x, -self.y)
 # ---------
 
 
@@ -40,6 +47,8 @@ class Vector2 ():
 	
 	def Normalize (self): # sqrt(x^2 + f*y^2) = 1, f - factor
 		return Vector2.clamp_magnitude(self, 1)
+
+	def round (self): return Vector2(round(self.x), round(self.y))
 # --------------
 
 

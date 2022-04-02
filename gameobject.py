@@ -18,6 +18,7 @@ class GameObject (Generic[T]):
 
 		self.components: list[Component] = []
 		self.add_component(Transform())
+		self.add_component(SpriteRenderer(Sprite()))
 
 
 # OPERATORS
@@ -68,4 +69,10 @@ class GameObject (Generic[T]):
 		for c in self.components:
 			if str(c.__class__) == str(type_name): components.append(c)
 		return components
+# --------------
+
+# STATIC METHODS
+	@staticmethod
+	def destroy (obj):
+		obj.__del__()
 # --------------

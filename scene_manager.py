@@ -7,14 +7,20 @@ class SceneManager ():
 
 # STATIC METHODS
 	@staticmethod
+	def init_engine (): pygame.init()
+
+	@staticmethod
 	def init_game ():
-		pygame.init()
 		pygame.display.set_caption(SceneManager.caption)
 
 		if SceneManager.fullscreen: SceneManager.window = pygame.display.set_mode((SceneManager.screen_width, SceneManager.screen_height), pygame.FULLSCREEN)
 		else: SceneManager.window = pygame.display.set_mode((SceneManager.screen_width, SceneManager.screen_height), pygame.RESIZABLE)
 
 		SceneManager.fps_clock = pygame.time.Clock()
+
+		for game_object in list(GameObject.instances.values()):
+			if game_object.scene == Scene.active_scene:
+				for component in game_object.components: component.start()
 
 		while (True):
 			for event in pygame.event.get():
@@ -41,6 +47,13 @@ class SceneManager ():
 		Scene.scenes[scene_name] = Scene(scene_name)
 		if active: Scene.active_scene = Scene.scenes[scene_name]
 		return Scene.scenes[scene_name]
+
+	@staticmethod
+	def debug (str):
+		if SceneManager.debug_iter == 60:
+			print(str)
+			SceneManager.debug_iter = 0
+		else: SceneManager.debug_iter += 1
 # --------------
 
 
@@ -55,4 +68,6 @@ class SceneManager ():
 	fullscreen = False
 
 	caption = "PyGameEngineProject"
+
+	debug_iter = 0
 # -----------------
